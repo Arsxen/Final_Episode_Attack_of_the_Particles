@@ -22,9 +22,7 @@ namespace scene_object
     void DrawRightWing(const float width, const float length, const float height);
     void DrawPlatform(const float width, const float length, const float height);
     void DrawGunBarrel(const float radius, const float height);
-    void DrawCoordinateFrame(const float l);
     void DrawSkybox(const float s);
-    void RenderPlane(const gmtl::Matrix44f& ppose);
     void DrawLightSource(const float radius);
 }
 

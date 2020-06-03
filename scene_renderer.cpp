@@ -7,8 +7,6 @@
 #include <GL/glut.h>
 #include <gmtl/gmtl.h>
 
-
-
 namespace scene_renderer
 {
     // Lighting
@@ -18,6 +16,28 @@ namespace scene_renderer
     const GLfloat SPECULAR_LIGHT[] = { 0.5, 0.5, 0.5, 1.0 };
 
     gmtl::Point4f light_pos(0.0, 600.0, 0.0, 1.0);
+
+    /* Plane Constant */
+    // Plane dimensions
+    const float P_WIDTH = 3.0f;
+    const float P_LENGTH = 3.0f;
+    const float P_HEIGHT = 1.5f;
+
+    // Propeller dimensions (subpart)
+    const float GUNBARREL_RADIUS = 0.02f;
+    const float GUNBARREL_HEIGHT = 0.5f;
+
+    // Propeller transforms
+    const gmtl::Point3f WING_POS(0, 0, 0);     // Propeller position on the plane (w.r.t. plane's frame)
+    const gmtl::Point3f PLATFORM_POS(0, 0, (P_HEIGHT * 2) / 3);
+    const gmtl::Point3f GUNBARREL_POS(0.1f, -0.525f, -0.3f);
+    const float PROPELLER_ROTATION = 0.5f;                  // Propeller rotated by 2 degs per input
+
+    // Propeller rotation (subpart)
+    bool isRotateUp = true;
+    float pp_angle = 0;         // Rotation angle for subpart C
+    float pp_angle_2 = 0;       // Rotation angle for subpart B
+    float platform = 0;			// Rotation angle for subpart A
 
     void SceneInit() {
 
@@ -75,6 +95,66 @@ namespace scene_renderer
         }
     }
 
+    void AnimateWing() {
+        if (isRotateUp) {
+            pp_angle += PROPELLER_ROTATION;
+            pp_angle_2 -= PROPELLER_ROTATION;
+        }
+        else {
+            pp_angle -= PROPELLER_ROTATION;
+            pp_angle_2 += PROPELLER_ROTATION;
+        }
+
+        if (pp_angle >= 30 || pp_angle_2 <= -30) {
+            isRotateUp = false;
+        }
+        else if (pp_angle <= -10 || pp_angle_2 >= 10) {
+            isRotateUp = true;
+        }
+    }
+
+    void RenderPlane(const gmtl::Matrix44f& ppose) {
+        // Plane 2 body:
+        glPushMatrix();
+        glMultMatrixf(ppose.mData);
+        scene_object::DrawPlaneBody(P_WIDTH, P_LENGTH, P_HEIGHT);
+
+        // LeftWing (subpart B):
+        glPushMatrix();
+        glTranslatef(WING_POS[0], WING_POS[1], WING_POS[2]);
+        glRotatef(pp_angle, 0, 0, 1);
+        scene_object::DrawLeftWing(P_WIDTH, P_LENGTH, P_HEIGHT);
+        glPopMatrix();
+
+        // RightWing (subpart C):
+        glPushMatrix();
+        glTranslatef(WING_POS[0], WING_POS[1], WING_POS[2]);
+        glRotatef(pp_angle_2, 0, 0, 1);
+        scene_object::DrawRightWing(P_WIDTH, P_LENGTH, P_HEIGHT);
+        glPopMatrix();
+
+        // Plaform (subpart A):
+        glPushMatrix();
+        glTranslatef(PLATFORM_POS[0], PLATFORM_POS[1], PLATFORM_POS[2]);
+        glRotatef(platform, 0, 1, 0);
+        scene_object::DrawPlatform(P_WIDTH, P_LENGTH, P_HEIGHT);
+
+        //Left Gun Barrel (subsubpart A)
+        glPushMatrix();
+        glTranslatef(-GUNBARREL_POS[0], GUNBARREL_POS[1], GUNBARREL_POS[2]);
+        scene_object::DrawGunBarrel(GUNBARREL_RADIUS, GUNBARREL_HEIGHT);
+        glPopMatrix();
+
+        //Right Gun Barrel (subsubpart B)
+        glPushMatrix();
+        glTranslatef(GUNBARREL_POS[0], GUNBARREL_POS[1], GUNBARREL_POS[2]);
+        scene_object::DrawGunBarrel(GUNBARREL_RADIUS, GUNBARREL_HEIGHT);
+        glPopMatrix();
+        glPopMatrix();
+
+        glPopMatrix();
+    }
+
     void RenderScene(const gmtl::Matrix44f& ppose) {
         SetLight(light_pos, true, true, true);
 
@@ -84,7 +164,7 @@ namespace scene_renderer
         glPopMatrix();
 
         scene_object::DrawSkybox(5000);
-        scene_object::RenderPlane(ppose);
+        RenderPlane(ppose);
     }
 }
 

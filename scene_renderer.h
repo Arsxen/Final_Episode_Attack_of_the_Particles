@@ -15,6 +15,8 @@
 namespace scene_renderer
 {
     void SceneInit();
+    void AnimateWing();
+    void RenderPlane(const gmtl::Matrix44f& ppose);
     void RenderScene(const gmtl::Matrix44f& ppose);
 }
 #endif //ASSIGNMENT5_SCENE_RENDERER_H

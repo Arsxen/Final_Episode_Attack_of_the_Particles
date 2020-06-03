@@ -6,7 +6,6 @@
 #include <GL/glut.h>
 #include <gmtl/gmtl.h>
 
-
 namespace scene_object
 {
     // Materials
@@ -33,27 +32,6 @@ namespace scene_object
     GLuint satellite_wing;
     GLuint earth_texture;
     GLuint plane_wing;
-
-    /* Plane Constant */
-    // Plane dimensions
-    const float P_WIDTH = 3.0f;
-    const float P_LENGTH = 3.0f;
-    const float P_HEIGHT = 1.5f;
-
-    // Propeller dimensions (subpart)
-    const float GUNBARREL_RADIUS = 0.02f;
-    const float GUNBARREL_HEIGHT = 0.5f;
-
-    // Propeller transforms
-    const gmtl::Point3f WING_POS(0, 0, 0);     // Propeller position on the plane (w.r.t. plane's frame)
-    const gmtl::Point3f PLATFORM_POS(0, 0, (P_HEIGHT * 2) / 3);
-    const gmtl::Point3f GUNBARREL_POS(0.1f, -0.525f, -0.3f);
-    const float PROPELLER_ROTATION = 2.0f;                  // Propeller rotated by 5 degs per input
-
-    // Propeller rotation (subpart)
-    float pp_angle = 0;         // Rotation angle for subpart C
-    float pp_angle_2 = 0;       // Rotation angle for subpart B
-    float platform = 0;			// Rotation angle for subpart A
 
     void LoadPPM(const char *fname, unsigned int *w, unsigned int *h, unsigned char **data, int mallocflag) {
         FILE *fp;
@@ -530,78 +508,6 @@ namespace scene_object
         //Gun Barrel
         glColor3ub(0, 0, 0);
         drawCylinder(radius, height);
-    }
-
-    void DrawCoordinateFrame(const float l)
-    {
-        glDisable(GL_LIGHTING);
-
-        glBegin(GL_LINES);
-        // X axis is red
-        glColor3f(1.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(l, 0.0f, 0.0f);
-
-        // Y axis is green
-        glColor3f(0.0f, 1.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, l, 0.0f);
-
-        // Z axis is blue
-        glColor3f(0.0f, 0.0f, 1.0f);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, l);
-        glEnd();
-
-        glEnable(GL_LIGHTING);
-    }
-
-    void RenderPlane(const gmtl::Matrix44f& ppose) {
-        // Plane 2 body:
-        glPushMatrix();
-        glMultMatrixf(ppose.mData);
-        DrawPlaneBody(P_WIDTH, P_LENGTH, P_HEIGHT);
-        DrawCoordinateFrame(3);
-
-        // LeftWing (subpart B):
-        glPushMatrix();
-        glTranslatef(WING_POS[0], WING_POS[1], WING_POS[2]);
-        glRotatef(pp_angle, 0, 0, 1);
-        DrawLeftWing(P_WIDTH, P_LENGTH, P_HEIGHT);
-        DrawCoordinateFrame(1);
-        glPopMatrix();
-
-        // RightWing (subpart C):
-        glPushMatrix();
-        glTranslatef(WING_POS[0], WING_POS[1], WING_POS[2]);
-        glRotatef(pp_angle_2, 0, 0, 1);
-        DrawRightWing(P_WIDTH, P_LENGTH, P_HEIGHT);
-        DrawCoordinateFrame(1);
-        glPopMatrix();
-
-        // Plaform (subpart A):
-        glPushMatrix();
-        glTranslatef(PLATFORM_POS[0], PLATFORM_POS[1], PLATFORM_POS[2]);
-        glRotatef(platform, 0, 1, 0);
-        DrawPlatform(P_WIDTH, P_LENGTH, P_HEIGHT);
-        DrawCoordinateFrame(1);
-
-        //Left Gun Barrel (subsubpart A)
-        glPushMatrix();
-        glTranslatef(-GUNBARREL_POS[0], GUNBARREL_POS[1], GUNBARREL_POS[2]);
-        DrawGunBarrel(GUNBARREL_RADIUS, GUNBARREL_HEIGHT);
-        DrawCoordinateFrame(1);
-        glPopMatrix();
-
-        //Right Gun Barrel (subsubpart B)
-        glPushMatrix();
-        glTranslatef(GUNBARREL_POS[0], GUNBARREL_POS[1], GUNBARREL_POS[2]);
-        DrawGunBarrel(GUNBARREL_RADIUS, GUNBARREL_HEIGHT);
-        DrawCoordinateFrame(1);
-        glPopMatrix();
-        glPopMatrix();
-
-        glPopMatrix();
     }
 
     void DrawSkybox(const float s) {

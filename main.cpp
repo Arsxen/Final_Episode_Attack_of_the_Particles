@@ -30,6 +30,7 @@
 #include <GL/glut.h>
 
 #include "scene_renderer.h"
+#include "scene_objects.h"
 
 /*___________________
 |
@@ -58,22 +59,22 @@ gmtl::Matrix44f MMAT;                                 // Basis matrix for Hermit
 
 const float R_MAX = 2.5f*1200.0f;                     // Expected maximum magnitude of local rightward component of plane's acceleration
 
-const int PARTICLE_NB = 40;                    		  // Number of particles
+const int PARTICLE_NB = 50;                    		  // Number of particles
 
-const float VMAG_MEAN  = 100.0f;                       // Velocity
-const float VMAG_STD   =  25.0f;
+const float VMAG_MEAN  = 500.0f;                       // Velocity
+const float VMAG_STD   =  200.0f;
 const float VDIR_STD   = 0.25f;
 
 const int TTL_BASE    = 200;                          // Time to live
-const int TTL_OFFSET  = 50;
+const int TTL_OFFSET  = 25;
 
-const float SMOKE_SIZE  = 10;                         // Smoke size
+const float SMOKE_SIZE  = 0.5;                         // Smoke size
 
 const float S_TSTEP = 0.0001f;                          // Simulation time step (for particle update)
 
 const gmtl::Vec3f GRAVITY(0, -100.0f, 0);                 // w.r.t. world, can be upward for smoke
 
-const gmtl::Vec3f V_WIND(100, 0, 0);                  // Wind velocity and drag coefficient (K)
+const gmtl::Vec3f V_WIND(500, 1000, 100);                  // Wind velocity and drag coefficient (K)
 const float K_COEF = 1.0f;
 
 // Keyboard modifiers
@@ -118,7 +119,7 @@ gmtl::Matrix44f pposeadj;                             // Adjusted plane coordina
 gmtl::Matrix44f pposeadj_inv;                         // Adjusted plane coordinate system (plane's camera is attached to this frame), inverted
 int ps    = 0;                                        // The segment in which the plane currently belongs
 float pt  = 0;                                        // The current t-value for the plane
-float pdt = 0.01f;                                    // delta_t for the plane
+float pdt = 0.001f;                                    // delta_t for the plane
 //float pdt = 0;                                    // delta_t for the plane
 
 MyParticle particles[PARTICLE_NB];    			          // Array of particles
@@ -234,7 +235,7 @@ void Init()
     glBindTexture(GL_TEXTURE_2D, texture);
 
     // load an image into memory
-    LoadPPM("smoketex2.ppm", &texwidth, &texheight, &imagedata, 1);
+    LoadPPM("smoketex.ppm", &texwidth, &texheight, &imagedata, 1);
 
     // describe the image to the graphics system as a texture map
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texwidth, texheight, 0,
@@ -395,7 +396,7 @@ void Idle_Func()
 {
     Update_Plane();
     Update_PSystem();
-
+    scene_renderer::AnimateWing();
     glutPostRedisplay();
 }
 
@@ -932,12 +933,10 @@ void Draw_Particles()
     dt_mat[2][3] = distance;
 
     // Set elevation matrix
-    gmtl::set(el_mat, gmtl::AxisAnglef(gmtl::Math::deg2Rad(elevation), 1, 0, 0)
-    );
+    gmtl::set(el_mat, gmtl::AxisAnglef(gmtl::Math::deg2Rad(elevation), 1, 0, 0));
 
     // Set azimuth matrix
-    gmtl::set(az_mat, gmtl::AxisAnglef(gmtl::Math::deg2Rad(azimuth), 0, 1, 0)
-    );
+    gmtl::set(az_mat, gmtl::AxisAnglef(gmtl::Math::deg2Rad(azimuth), 0, 1, 0));
 
     // Compute camera w.r.t. world and discard translation
     cam_mat = pposeadj * az_mat * el_mat * dt_mat;
@@ -984,12 +983,12 @@ void Draw_Particles()
 */
 float FastGauss(float mean, float std)
 {
-#define RESOLUTION 2500
+    #define RESOLUTION 2500
     static float lookup[RESOLUTION+1];
 
-#define itblmax    20
-    /* length - 1 of table describing F inverse */
-#define didu    40.0
+    #define itblmax    20
+        /* length - 1 of table describing F inverse */
+    #define didu    40.0
     /* delta table position / delta ind. variable           itblmax / 0.5 */
 
     static float tbl[] =
