@@ -405,4 +405,8 @@ healthchecksdb
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 
+*.sln
+*.vcxproj
+*.filters
+
 # End of https://www.toptal.com/developers/gitignore/api/c++,visualstudio,windows
